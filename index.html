@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="把女子美髮丙級題庫整理成主題式、白話好懂的學習筆記。">
+  <title>髮理筆記｜美髮丙級知識庫</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23171716'/%3E%3Cpath d='M7 20c5-11 13-11 18 0M9 23c4-7 10-7 14 0' fill='none' stroke='%23f6c453' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <style>[hidden]{display:none!important}</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="回到頁首"><span class="brand-mark">髮</span><span>髮理筆記</span></a>
+    <div class="top-progress"><span>已讀懂</span><strong id="learnedTop">0</strong><span>/</span><span id="totalTop">818</span></div>
+  </header>
+
+  <main id="top">
+    <section class="intro">
+      <div>
+        <p class="eyebrow">女子美髮丙級 · 主題式題庫</p>
+        <h1>不要只背答案，<br><em>把理由弄懂。</em></h1>
+      </div>
+      <div class="intro-side">
+        <p>從毛髮構造到公共衛生，題目已重新拆成小知識。你可以依主題看、直接搜尋，或抽一題複習。</p>
+        <div class="study-count"><strong id="totalCount">818</strong><span>張知識卡</span></div>
+      </div>
+    </section>
+
+    <section class="workspace" aria-label="題庫學習區">
+      <aside class="topic-panel" aria-label="主題分類">
+        <p class="aside-label">學習主題</p>
+        <nav id="topics" class="topics"></nav>
+        <div class="source-note">
+          <span>資料版本</span>
+          <b>2016 原題庫</b>
+          <p>法規、衛生數值及急救內容可能已更新，應試前請對照最新官方教材。</p>
+        </div>
+      </aside>
+
+      <div class="content">
+        <div class="search-row">
+          <label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="搜尋：毛乳頭、染髮、消毒…" aria-label="搜尋知識卡"></label>
+          <label class="select-wrap"><span class="sr-only">選擇小主題</span><select id="subtopic" aria-label="選擇小主題"><option value="">全部小主題</option></select></label>
+          <button id="random" class="random" type="button">隨機複習</button>
+        </div>
+
+        <div class="notice"><span>讀法</span><p><b>先看題目，再看黃色答案，最後讀「為什麼」。</b> 題號只保留在卡片底部，讓你需要時能回原 PDF 對照。</p></div>
+
+        <div class="section-head">
+          <div><p id="sectionEyebrow" class="eyebrow">全部主題</p><h2 id="sectionTitle">全部知識卡</h2></div>
+          <p class="result-count"><strong id="resultCount">818</strong> 張</p>
+        </div>
+
+        <div id="cards" class="cards" aria-live="polite"></div>
+        <div id="empty" class="empty" hidden><span>找不到</span><h3>換個關鍵字試試看</h3><p>可以搜尋器具名稱、頭髮構造、藥劑或衛生觀念。</p></div>
+        <button id="more" class="more" type="button" hidden>再顯示 24 張</button>
+      </div>
+    </section>
+  </main>
+
+  <template id="cardTemplate">
+    <article class="card">
+      <div class="card-meta"><span class="pill"></span><span class="source"></span></div>
+      <h3></h3>
+      <p class="answer"><span>答案</span><b></b></p>
+      <div class="explain"><span>為什麼？</span><p></p></div>
+      <p class="memory"></p>
+      <details class="options"><summary>查看原始選項</summary><ol></ol></details>
+      <button class="learn" type="button" aria-pressed="false"><span aria-hidden="true">✓</span> 我懂了</button>
+    </article>
+  </template>
+
+  <script src="questions.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
