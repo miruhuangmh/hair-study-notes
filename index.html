@@ -12,50 +12,80 @@
 <body>
   <header class="topbar">
     <a class="brand" href="#top" aria-label="回到頁首"><span class="brand-mark">髮</span><span>髮理筆記</span></a>
+    <nav class="view-tabs" aria-label="網站主要功能" role="tablist">
+      <button class="view-tab active" type="button" data-view="notes" role="tab" aria-controls="notesView" aria-selected="true">學習筆記</button>
+      <button class="view-tab" type="button" data-view="checklist" role="tab" aria-controls="checklistView" aria-selected="false">丙級術科用具 Checklist</button>
+    </nav>
     <div class="top-progress"><span>已讀懂</span><strong id="learnedTop">0</strong><span>/</span><span id="totalTop">818</span></div>
   </header>
 
   <main id="top">
-    <section class="intro">
-      <div>
-        <p class="eyebrow">女子美髮丙級 · 主題式題庫</p>
-        <h1>不要只背答案，<br><em>把理由弄懂。</em></h1>
-      </div>
-      <div class="intro-side">
-        <p>從毛髮構造到公共衛生，題目已重新拆成小知識。你可以依主題看、直接搜尋，或抽一題複習。</p>
-        <div class="study-count"><strong id="totalCount">818</strong><span>張知識卡</span></div>
-      </div>
-    </section>
-
-    <section class="workspace" aria-label="題庫學習區">
-      <aside class="topic-panel" aria-label="主題分類">
-        <p class="aside-label">學習主題</p>
-        <nav id="topics" class="topics"></nav>
-        <div class="source-note">
-          <span>資料版本</span>
-          <b>2016 原題庫</b>
-          <p>法規、衛生數值及急救內容可能已更新，應試前請對照最新官方教材。</p>
+    <div id="notesView" class="view-panel" role="tabpanel">
+      <section class="intro">
+        <div>
+          <p class="eyebrow">女子美髮丙級 · 主題式題庫</p>
+          <h1>不要只背答案，<br><em>把理由弄懂。</em></h1>
         </div>
-      </aside>
-
-      <div class="content">
-        <div class="search-row">
-          <label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="搜尋：毛乳頭、染髮、消毒…" aria-label="搜尋知識卡"></label>
-          <label class="select-wrap"><span class="sr-only">選擇小主題</span><select id="subtopic" aria-label="選擇小主題"><option value="">全部小主題</option></select></label>
-          <button id="random" class="random" type="button">隨機複習</button>
+        <div class="intro-side">
+          <p>從毛髮構造到公共衛生，題目已重新拆成小知識。你可以依主題看、直接搜尋，或抽一題複習。</p>
+          <div class="study-count"><strong id="totalCount">818</strong><span>張知識卡</span></div>
         </div>
+      </section>
 
-        <div class="notice"><span>讀法</span><p><b>先看題目，再看黃色答案，最後讀「為什麼」。</b> 題號只保留在卡片底部，讓你需要時能回原 PDF 對照。</p></div>
+      <section class="workspace" aria-label="題庫學習區">
+        <aside class="topic-panel" aria-label="主題分類">
+          <p class="aside-label">學習主題與進度</p>
+          <nav id="topics" class="topics"></nav>
+          <div class="source-note">
+            <span>資料版本</span>
+            <b>2016 原題庫</b>
+            <p>法規、衛生數值及急救內容可能已更新，應試前請對照最新官方教材。</p>
+          </div>
+        </aside>
 
-        <div class="section-head">
-          <div><p id="sectionEyebrow" class="eyebrow">全部主題</p><h2 id="sectionTitle">全部知識卡</h2></div>
-          <p class="result-count"><strong id="resultCount">818</strong> 張</p>
+        <div class="content">
+          <div class="search-row">
+            <label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="搜尋：毛乳頭、染髮、消毒…" aria-label="搜尋知識卡"></label>
+            <label class="select-wrap"><span class="sr-only">選擇小主題</span><select id="subtopic" aria-label="選擇小主題"><option value="">全部小主題</option></select></label>
+            <button id="random" class="random" type="button">隨機複習</button>
+          </div>
+
+          <div class="notice"><span>讀法</span><p><b>先看題目，再看黃色答案，最後讀「為什麼」。</b> 題號只保留在卡片底部，讓你需要時能回原 PDF 對照。</p></div>
+
+          <div class="section-head">
+            <div><p id="sectionEyebrow" class="eyebrow">全部主題</p><h2 id="sectionTitle">全部知識卡</h2></div>
+            <p class="result-count"><strong id="resultCount">818</strong> 張</p>
+          </div>
+
+          <div id="cards" class="cards" aria-live="polite"></div>
+          <div id="empty" class="empty" hidden><span>找不到</span><h3>換個關鍵字試試看</h3><p>可以搜尋器具名稱、頭髮構造、藥劑或衛生觀念。</p></div>
+          <button id="more" class="more" type="button" hidden>再顯示 24 張</button>
         </div>
+      </section>
+    </div>
 
-        <div id="cards" class="cards" aria-live="polite"></div>
-        <div id="empty" class="empty" hidden><span>找不到</span><h3>換個關鍵字試試看</h3><p>可以搜尋器具名稱、頭髮構造、藥劑或衛生觀念。</p></div>
-        <button id="more" class="more" type="button" hidden>再顯示 24 張</button>
+    <section id="checklistView" class="view-panel checklist-page" role="tabpanel" aria-labelledby="checklistTitle" hidden>
+      <div class="checklist-hero">
+        <div>
+          <p class="eyebrow">女子美髮丙級 · 術科應檢</p>
+          <h1 id="checklistTitle">帶齊工具，<br><em>安心進考場。</em></h1>
+          <p class="checklist-lead">依官方「美髮技能應檢人自備工具表」整理，共 21 項。勾選紀錄會自動保存在這個瀏覽器。</p>
+        </div>
+        <div class="checklist-progress-card">
+          <div><span>準備進度</span><strong><b id="checklistDone">0</b> / <b id="checklistTotal">21</b></strong></div>
+          <div class="checklist-progress" aria-hidden="true"><i id="checklistProgressBar"></i></div>
+          <p id="checklistProgressText">還沒開始準備</p>
+        </div>
       </div>
+
+      <div class="checklist-notice">
+        <span>重要</span>
+        <p>只能攜帶工具表列出的用具，<b>其他用具（包含計時器）不得帶入試場</b>。實際應試仍以准考證與測試單位最新通知為準。</p>
+      </div>
+
+      <div id="checklistGroups" class="checklist-groups"></div>
+
+      <p class="official-source">資料來源：<a href="https://ws.wda.gov.tw/Download.ashx?n=5aWz5a2Q576O6auu5LiZ57Sa6KGT56eR5ris6Kmm5oeJ5qqi5Lq65Y%2BD6ICD6LOH5paZ5L%2Bu5q2j6I2J5qGI77yI5LiN5ZCr6KGb55Sf5oqA6IO977yJLnBkZg%3D%3D&amp;u=LzAwMS9VcGxvYWQvMzMxL3JlbGZpbGUvMTAwMjcvNzYyL2ZkNTQzNjQwLTUxOTItNGYwNi1iNTM5LTBlNThmYTA3OWEzOC5wZGY%3D" target="_blank" rel="noopener">勞動部勞動力發展署技能檢定中心參考資料</a></p>
     </section>
   </main>
 
