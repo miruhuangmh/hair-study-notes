@@ -50,7 +50,7 @@
             <button id="random" class="random" type="button">隨機複習</button>
           </div>
 
-          <div class="notice"><span>讀法</span><p><b>先看題目，再看黃色答案，最後讀「為什麼」。</b> 題號只保留在卡片底部，讓你需要時能回原 PDF 對照。</p></div>
+          <div class="notice"><span>讀法</span><p><b>先選一個選項，再按「確認答案」。</b> 作答後才會顯示正確答案與白話講解，不會一眼就被答案提示。</p></div>
 
           <div class="section-head">
             <div><p id="sectionEyebrow" class="eyebrow">全部主題</p><h2 id="sectionTitle">全部知識卡</h2></div>
@@ -93,11 +93,20 @@
     <article class="card">
       <div class="card-meta"><span class="pill"></span><span class="source"></span></div>
       <h3></h3>
-      <p class="answer"><span>答案</span><b></b></p>
-      <div class="explain"><span>為什麼？</span><p></p></div>
-      <p class="memory"></p>
-      <details class="options"><summary>查看原始選項</summary><ol></ol></details>
-      <button class="learn" type="button" aria-pressed="false"><span aria-hidden="true">✓</span> 我懂了</button>
+      <div class="quiz-options" role="radiogroup" aria-label="選擇答案"></div>
+      <button class="check-answer" type="button" disabled>確認答案</button>
+      <div class="answer-reveal" hidden aria-live="polite">
+        <div class="result-line">
+          <span class="result-badge"></span>
+          <p class="answer"><span>正確答案</span><b></b></p>
+        </div>
+        <div class="explain"><span>為什麼？</span><p></p></div>
+        <p class="memory"></p>
+        <div class="card-actions">
+          <button class="retry" type="button">重新作答</button>
+          <button class="learn" type="button" aria-pressed="false"><span aria-hidden="true">✓</span> 我懂了</button>
+        </div>
+      </div>
     </article>
   </template>
 

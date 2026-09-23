@@ -202,18 +202,76 @@
     node.querySelector('.answer b').textContent = q.answer;
     node.querySelector('.explain p').textContent = q.explanation;
     node.querySelector('.memory').textContent = `好記法｜${q.memory}`;
-    const list = node.querySelector('.options ol');
-    q.options.forEach(option => {
-      const li = document.createElement('li');
-      li.textContent = option;
-      if (option === q.answer) li.className = 'correct';
-      list.append(li);
+    const optionBox = node.querySelector('.quiz-options');
+    const checkButton = node.querySelector('.check-answer');
+    const reveal = node.querySelector('.answer-reveal');
+    const resultBadge = node.querySelector('.result-badge');
+    const retryButton = node.querySelector('.retry');
+    const learnButton = node.querySelector('.learn');
+    let selectedIndex = -1;
+
+    q.options.forEach((option, index) => {
+      const label = document.createElement('label');
+      label.className = 'quiz-option';
+      const input = document.createElement('input');
+      input.type = 'radio';
+      input.name = `answer-${q.id}`;
+      input.value = option;
+      const letter = document.createElement('span');
+      letter.className = 'option-letter';
+      letter.textContent = String.fromCharCode(65 + index);
+      const text = document.createElement('span');
+      text.className = 'option-text';
+      text.textContent = option;
+      input.addEventListener('change', () => {
+        selectedIndex = index;
+        checkButton.disabled = false;
+        optionBox.querySelectorAll('.quiz-option').forEach(item => item.classList.remove('selected'));
+        label.classList.add('selected');
+      });
+      label.append(input, letter, text);
+      optionBox.append(label);
     });
-    if (!q.options.length) node.querySelector('.options').hidden = true;
-    const button = node.querySelector('.learn');
-    const sync = () => button.setAttribute('aria-pressed', learned.has(q.id) ? 'true' : 'false');
+
+    if (!q.options.length) {
+      optionBox.hidden = true;
+      checkButton.disabled = false;
+      checkButton.textContent = '查看答案';
+    }
+
+    const showAnswer = () => {
+      const isCorrect = selectedIndex >= 0 && q.options[selectedIndex] === q.answer;
+      optionBox.querySelectorAll('.quiz-option').forEach((label, index) => {
+        const input = label.querySelector('input');
+        input.disabled = true;
+        label.classList.toggle('correct', q.options[index] === q.answer);
+        label.classList.toggle('wrong', index === selectedIndex && !isCorrect);
+      });
+      resultBadge.textContent = q.options.length ? (isCorrect ? '答對了' : '再想一下') : '答案揭曉';
+      resultBadge.className = `result-badge ${isCorrect ? 'success' : q.options.length ? 'needs-review' : 'neutral'}`;
+      reveal.hidden = false;
+      checkButton.hidden = true;
+      node.classList.add('answered');
+    };
+
+    checkButton.addEventListener('click', showAnswer);
+    retryButton.addEventListener('click', () => {
+      selectedIndex = -1;
+      optionBox.querySelectorAll('.quiz-option').forEach(label => {
+        label.classList.remove('selected', 'correct', 'wrong');
+        const input = label.querySelector('input');
+        input.checked = false;
+        input.disabled = false;
+      });
+      reveal.hidden = true;
+      checkButton.hidden = false;
+      checkButton.disabled = q.options.length > 0;
+      node.classList.remove('answered');
+    });
+
+    const sync = () => learnButton.setAttribute('aria-pressed', learned.has(q.id) ? 'true' : 'false');
     sync();
-    button.addEventListener('click', () => {
+    learnButton.addEventListener('click', () => {
       learned.has(q.id) ? learned.delete(q.id) : learned.add(q.id);
       localStorage.setItem(learnedKey, JSON.stringify([...learned]));
       sync();
