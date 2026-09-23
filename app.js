@@ -1,6 +1,5 @@
 (() => {
   const data = window.HAIR_KB;
-  const PAGE_SIZE = 24;
   const learnedKey = 'hair-kb-learned-v1';
   const checklistKey = 'hair-kb-practical-checklist-v1';
   const checklistGroups = [
@@ -54,7 +53,7 @@
   let selectedGroup = '';
   let selectedSubtopic = '';
   let query = '';
-  let visible = PAGE_SIZE;
+  const attempts = new Map();
 
   const loadSavedSet = key => {
     try { return new Set(JSON.parse(localStorage.getItem(key) || '[]')); }
@@ -67,7 +66,7 @@
   const $ = selector => document.querySelector(selector);
   const els = {
     topics: $('#topics'), search: $('#search'), subtopic: $('#subtopic'), cards: $('#cards'),
-    more: $('#more'), empty: $('#empty'), random: $('#random'), resultCount: $('#resultCount'),
+    empty: $('#empty'), random: $('#random'), resultCount: $('#resultCount'),
     title: $('#sectionTitle'), eyebrow: $('#sectionEyebrow'), learnedTop: $('#learnedTop'),
     totalTop: $('#totalTop'), totalCount: $('#totalCount'), template: $('#cardTemplate'),
     notesView: $('#notesView'), checklistView: $('#checklistView'), checklistGroups: $('#checklistGroups'),
@@ -118,7 +117,6 @@
       button.addEventListener('click', () => {
         selectedGroup = value;
         selectedSubtopic = '';
-        visible = PAGE_SIZE;
         buildTopics();
         buildSubtopics();
         render();
@@ -208,7 +206,8 @@
     const resultBadge = node.querySelector('.result-badge');
     const retryButton = node.querySelector('.retry');
     const learnButton = node.querySelector('.learn');
-    let selectedIndex = -1;
+    const savedAttempt = attempts.get(q.id) || { selectedIndex: -1, revealed: false };
+    let selectedIndex = savedAttempt.selectedIndex;
 
     q.options.forEach((option, index) => {
       const label = document.createElement('label');
@@ -217,6 +216,7 @@
       input.type = 'radio';
       input.name = `answer-${q.id}`;
       input.value = option;
+      input.checked = index === selectedIndex;
       const letter = document.createElement('span');
       letter.className = 'option-letter';
       letter.textContent = String.fromCharCode(65 + index);
@@ -225,13 +225,17 @@
       text.textContent = option;
       input.addEventListener('change', () => {
         selectedIndex = index;
+        attempts.set(q.id, { selectedIndex, revealed: false });
         checkButton.disabled = false;
         optionBox.querySelectorAll('.quiz-option').forEach(item => item.classList.remove('selected'));
         label.classList.add('selected');
       });
+      label.classList.toggle('selected', input.checked);
       label.append(input, letter, text);
       optionBox.append(label);
     });
+
+    checkButton.disabled = q.options.length > 0 && selectedIndex < 0;
 
     if (!q.options.length) {
       optionBox.hidden = true;
@@ -241,6 +245,7 @@
 
     const showAnswer = () => {
       const isCorrect = selectedIndex >= 0 && q.options[selectedIndex] === q.answer;
+      attempts.set(q.id, { selectedIndex, revealed: true });
       optionBox.querySelectorAll('.quiz-option').forEach((label, index) => {
         const input = label.querySelector('input');
         input.disabled = true;
@@ -257,6 +262,7 @@
     checkButton.addEventListener('click', showAnswer);
     retryButton.addEventListener('click', () => {
       selectedIndex = -1;
+      attempts.delete(q.id);
       optionBox.querySelectorAll('.quiz-option').forEach(label => {
         label.classList.remove('selected', 'correct', 'wrong');
         const input = label.querySelector('input');
@@ -268,6 +274,8 @@
       checkButton.disabled = q.options.length > 0;
       node.classList.remove('answered');
     });
+
+    if (savedAttempt.revealed) showAnswer();
 
     const sync = () => learnButton.setAttribute('aria-pressed', learned.has(q.id) ? 'true' : 'false');
     sync();
@@ -285,32 +293,22 @@
     els.resultCount.textContent = items.length;
     els.eyebrow.textContent = selectedSubtopic || selectedGroup || '全部主題';
     els.title.textContent = query ? `「${query}」的搜尋結果` : selectedSubtopic || selectedGroup || '全部知識卡';
-    els.cards.replaceChildren(...items.slice(0, visible).map(makeCard));
+    els.cards.replaceChildren(...items.map(makeCard));
     els.empty.hidden = items.length !== 0;
-    els.more.hidden = items.length <= visible;
-    els.more.textContent = `再顯示 ${Math.max(0, Math.min(PAGE_SIZE, items.length - visible))} 張`;
   }
 
   els.search.addEventListener('input', event => {
     query = event.target.value.trim();
-    visible = PAGE_SIZE;
     render();
   });
   els.subtopic.addEventListener('change', event => {
     selectedSubtopic = event.target.value;
-    visible = PAGE_SIZE;
-    render();
-  });
-  els.more.addEventListener('click', () => {
-    visible += PAGE_SIZE;
     render();
   });
   els.random.addEventListener('click', () => {
     const items = currentItems();
     if (!items.length) return;
     const pick = items[Math.floor(Math.random() * items.length)];
-    const position = items.findIndex(q => q.id === pick.id);
-    visible = Math.max(visible, position + 1);
     render();
     requestAnimationFrame(() => {
       const card = document.querySelector(`[data-id="${pick.id}"]`);
