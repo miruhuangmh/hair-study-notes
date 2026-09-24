@@ -2,6 +2,7 @@
   const data = window.HAIR_KB;
   const learnedKey = 'hair-kb-learned-v1';
   const checklistKey = 'hair-kb-practical-checklist-v1';
+  const attemptsKey = 'hair-kb-attempts-v1';
   const checklistGroups = [
     {
       name: '服裝與防護',
@@ -53,15 +54,36 @@
   let selectedGroup = '';
   let selectedSubtopic = '';
   let query = '';
-  const attempts = new Map();
 
   const loadSavedSet = key => {
     try { return new Set(JSON.parse(localStorage.getItem(key) || '[]')); }
     catch { return new Set(); }
   };
 
+  const questionsById = new Map(data.questions.map(question => [question.id, question]));
+  const loadSavedAttempts = () => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(attemptsKey) || '{}');
+      if (!saved || Array.isArray(saved) || typeof saved !== 'object') return new Map();
+      return new Map(Object.entries(saved).flatMap(([id, attempt]) => {
+        const question = questionsById.get(id);
+        const selectedIndex = Number(attempt?.selectedIndex);
+        const validSelection = Number.isInteger(selectedIndex) && selectedIndex >= -1 && selectedIndex < question?.options.length;
+        if (!question || !validSelection) return [];
+        return [[id, {
+          selectedIndex,
+          revealed: Boolean(attempt.revealed),
+          completedAt: Number.isFinite(Number(attempt.completedAt)) ? Number(attempt.completedAt) : 0
+        }]];
+      }));
+    } catch {
+      return new Map();
+    }
+  };
+
   let learned = loadSavedSet(learnedKey);
   let checkedTools = loadSavedSet(checklistKey);
+  const attempts = loadSavedAttempts();
 
   const $ = selector => document.querySelector(selector);
   const els = {
@@ -71,11 +93,14 @@
     totalTop: $('#totalTop'), totalCount: $('#totalCount'), template: $('#cardTemplate'),
     notesView: $('#notesView'), checklistView: $('#checklistView'), checklistGroups: $('#checklistGroups'),
     checklistDone: $('#checklistDone'), checklistTotal: $('#checklistTotal'),
-    checklistProgressBar: $('#checklistProgressBar'), checklistProgressText: $('#checklistProgressText')
+    checklistProgressBar: $('#checklistProgressBar'), checklistProgressText: $('#checklistProgressText'),
+    attemptDone: $('#attemptDone'), attemptTotal: $('#attemptTotal'),
+    attemptProgressBar: $('#attemptProgressBar'), continueLast: $('#continueLast')
   };
 
   els.totalTop.textContent = data.total;
   els.totalCount.textContent = data.total;
+  els.attemptTotal.textContent = data.total;
 
   const normalize = value => value.toLocaleLowerCase('zh-Hant').replace(/\s+/g, '');
 
@@ -105,6 +130,26 @@
   }
 
   const labelForGroup = group => group || '全部主題';
+
+  function completedAttemptEntries() {
+    return [...attempts.entries()].filter(([, attempt]) => attempt.revealed);
+  }
+
+  function updateAttemptProgress() {
+    const completed = completedAttemptEntries().length;
+    const percent = data.total ? Math.round(completed / data.total * 100) : 0;
+    els.attemptDone.textContent = completed;
+    els.attemptProgressBar.style.width = `${percent}%`;
+    els.attemptProgressBar.parentElement.setAttribute('aria-valuenow', String(percent));
+    els.attemptProgressBar.parentElement.setAttribute('aria-label', `作答進度 ${completed} / ${data.total}`);
+    els.continueLast.textContent = completed === data.total ? '查看最後作答' : completed ? '繼續上次進度' : '從第一題開始';
+  }
+
+  function saveAttempts() {
+    try { localStorage.setItem(attemptsKey, JSON.stringify(Object.fromEntries(attempts))); }
+    catch { /* Browser storage can be unavailable in restricted privacy modes. */ }
+    updateAttemptProgress();
+  }
 
   function buildTopics() {
     const entries = [['', '全部主題', data.total], ...data.groupOrder.map(g => [g,g,data.counts[g]])];
@@ -225,7 +270,8 @@
       text.textContent = option;
       input.addEventListener('change', () => {
         selectedIndex = index;
-        attempts.set(q.id, { selectedIndex, revealed: false });
+        attempts.set(q.id, { selectedIndex, revealed: false, completedAt: 0 });
+        saveAttempts();
         checkButton.disabled = false;
         optionBox.querySelectorAll('.quiz-option').forEach(item => item.classList.remove('selected'));
         label.classList.add('selected');
@@ -243,9 +289,15 @@
       checkButton.textContent = '查看答案';
     }
 
-    const showAnswer = () => {
+    const showAnswer = (restoring = false) => {
       const isCorrect = selectedIndex >= 0 && q.options[selectedIndex] === q.answer;
-      attempts.set(q.id, { selectedIndex, revealed: true });
+      const previous = attempts.get(q.id);
+      attempts.set(q.id, {
+        selectedIndex,
+        revealed: true,
+        completedAt: restoring ? previous?.completedAt || 0 : Date.now()
+      });
+      if (!restoring) saveAttempts();
       optionBox.querySelectorAll('.quiz-option').forEach((label, index) => {
         const input = label.querySelector('input');
         input.disabled = true;
@@ -259,10 +311,11 @@
       node.classList.add('answered');
     };
 
-    checkButton.addEventListener('click', showAnswer);
+    checkButton.addEventListener('click', () => showAnswer());
     retryButton.addEventListener('click', () => {
       selectedIndex = -1;
       attempts.delete(q.id);
+      saveAttempts();
       optionBox.querySelectorAll('.quiz-option').forEach(label => {
         label.classList.remove('selected', 'correct', 'wrong');
         const input = label.querySelector('input');
@@ -275,7 +328,7 @@
       node.classList.remove('answered');
     });
 
-    if (savedAttempt.revealed) showAnswer();
+    if (savedAttempt.revealed) showAnswer(true);
 
     const sync = () => learnButton.setAttribute('aria-pressed', learned.has(q.id) ? 'true' : 'false');
     sync();
@@ -295,6 +348,34 @@
     els.title.textContent = query ? `「${query}」的搜尋結果` : selectedSubtopic || selectedGroup || '全部知識卡';
     els.cards.replaceChildren(...items.map(makeCard));
     els.empty.hidden = items.length !== 0;
+    updateAttemptProgress();
+  }
+
+  function continueFromLastAttempt() {
+    const completed = completedAttemptEntries();
+    const latest = completed.reduce((current, entry) => {
+      if (!current) return entry;
+      return (entry[1].completedAt || 0) > (current[1].completedAt || 0) ? entry : current;
+    }, null);
+    const latestIndex = latest ? data.questions.findIndex(question => question.id === latest[0]) : -1;
+    const questionsAfterLatest = latestIndex >= 0 ? data.questions.slice(latestIndex + 1) : data.questions;
+    const target = questionsAfterLatest.find(question => !attempts.get(question.id)?.revealed)
+      || data.questions.find(question => !attempts.get(question.id)?.revealed)
+      || questionsById.get(latest?.[0])
+      || data.questions[0];
+
+    selectedGroup = '';
+    selectedSubtopic = '';
+    query = '';
+    els.search.value = '';
+    buildTopics();
+    buildSubtopics();
+    render();
+    requestAnimationFrame(() => {
+      const card = document.querySelector(`[data-id="${target.id}"]`);
+      card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      card?.classList.add('flash');
+    });
   }
 
   els.search.addEventListener('input', event => {
@@ -316,6 +397,7 @@
       card?.classList.add('flash');
     });
   });
+  els.continueLast.addEventListener('click', continueFromLastAttempt);
   document.querySelectorAll('.view-tab').forEach(tab => {
     tab.addEventListener('click', () => setView(tab.dataset.view));
   });

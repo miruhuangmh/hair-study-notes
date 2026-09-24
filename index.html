@@ -6,7 +6,7 @@
   <meta name="description" content="把女子美髮丙級題庫整理成主題式、白話好懂的學習筆記。">
   <title>髮理筆記｜美髮丙級知識庫</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23171716'/%3E%3Cpath d='M7 20c5-11 13-11 18 0M9 23c4-7 10-7 14 0' fill='none' stroke='%23f6c453' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20260923-3">
+  <link rel="stylesheet" href="styles.css?v=20260924-1">
   <style>[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -54,7 +54,14 @@
 
           <div class="section-head">
             <div><p id="sectionEyebrow" class="eyebrow">全部主題</p><h2 id="sectionTitle">全部知識卡</h2></div>
-            <p class="result-count"><strong id="resultCount">818</strong> 張</p>
+            <div class="section-status">
+              <p class="result-count"><strong id="resultCount">818</strong> 張</p>
+              <div class="attempt-progress-wrap">
+                <p>作答進度 <strong id="attemptDone">0</strong> / <span id="attemptTotal">818</span></p>
+                <div class="attempt-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="作答進度 0 / 818"><i id="attemptProgressBar"></i></div>
+              </div>
+              <button id="continueLast" class="continue-last" type="button">從第一題開始</button>
+            </div>
           </div>
 
           <div id="cards" class="cards" aria-live="polite"></div>
@@ -115,6 +122,6 @@
   </a>
 
   <script src="questions.js"></script>
-  <script src="app.js?v=20260923-4"></script>
+  <script src="app.js?v=20260924-1"></script>
 </body>
 </html>
